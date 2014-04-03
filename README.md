@@ -19,6 +19,11 @@ Features
 - Diffuse mapping
 - Test Model
 
+Live Version
+--------------------------
+[Link](http://blacktowerentertainment.com/tools/animationviewer.html)
+
+
 Video
 --------------------------
 [Link](http://youtu.be/bA2glOT4mGM)
