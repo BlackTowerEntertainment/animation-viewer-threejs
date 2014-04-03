@@ -80,11 +80,11 @@
 </head>
 <body>
 <div id="info"><h1>Animation Viewer</h1>
-    <a href="http://blacktowerentertainment.com">Black Tower Entertainment</a><br>
-    <b>Drag .js animation files, and textures onto this screen</b>
-    </div>
+    <b>Drag .js animation files, and textures onto this screen</b><br>
+    <a href="http://blacktowerentertainment.com/blog">Black Tower Entertainment</a><br>
+</div>
 <div id="container"></div>
-<div id="boneListing"><b style="text-align: left">Bone Attachments</b><hr><br><div id="bonePanel"><a id="testButton" href="#">Load TestModel</a></div>
+<div id="boneListing"><b style="text-align: left">Bone Attachments</b><hr><br><div id="bonePanel"><a class="testButton" href="#">Load TestModel</a></div>
     <div id="buttonPanel">
         <button onclick="editor.toggleBoneVisibility()">DebugInfo</button>
         <button onclick="editor.toggleAnimation()">Animation</button>
@@ -95,7 +95,7 @@
 <div id="animationPanel">
     <b style="text-align: left">Animation</b><hr>
     Active Animation: <div id="animationPanelContent">
-    <a id="testButton" href="#">Load TestModel</a>
+    <a class="testButton" href="#">Load TestModel</a>
     </div>
     Animation Speed:
     <select id="speedSelect">
@@ -132,14 +132,18 @@
         animationSpeed = parseFloat(event.target.selectedOptions[0].attributes[0].nodeValue);
     };
 
-    document.getElementById("testButton").addEventListener("click", function(event)
+    buttons = document.getElementsByClassName("testButton");
+    for(var id = 0; id < buttons.length; ++id)
     {
-        var jsonLoader = new THREE.JSONLoader();
-        jsonLoader.load( "example_models/example_model.js", function(geometry)
+        buttons[id].addEventListener("click", function(event)
         {
-            editor.instanceMesh(geometry);
+            var jsonLoader = new THREE.JSONLoader();
+            jsonLoader.load( "example_models/example_model.js", function(geometry)
+            {
+                editor.instanceMesh(geometry);
+            });
         });
-    });
+    }
 
     function PlayAnimation(name)
     {
