@@ -4,8 +4,20 @@ By: [Black Tower Entertainment](http://blacktowerentertainment.com/blog/)
 
 ![screenshot 2014-04-02 21 30 36](https://cloud.githubusercontent.com/assets/5099279/2599676/c3776bd0-bae8-11e3-9b36-acfb306c4280.png)
 
-Version 1.0
---------------------------
+Version 1.1
+====================
+[Black Tower Entertainment](http://blacktowerentertainment.com/blog/)
+
+New Features
+-------------------------
+- Directional lighting color edit added
+- Ambient lighting color edit added
+- Material Ambient color edit added
+- Material Color edit added
+- Material Emissive color edit added
+- Clear color edit
+- Static skinned mesh loading with bone debug
+- Mesh view toggle added
 
 Features
 --------------------------
@@ -14,11 +26,12 @@ Features
 - Attachment points
 - Wireframe mode
 - Animation play / pause
-- Active Animation selection
-- Frame Stepping
+- Active animation selection
+- Frame stepping
 - Diffuse mapping
-- Test Model
+- Test model
 
+![screenshot 2014-04-03 22 23 27](https://cloud.githubusercontent.com/assets/5099279/2612155/e5e33b96-bbb9-11e3-8c2f-2d6450056d32.png)
 Live Version
 --------------------------
 [Link](http://blacktowerentertainment.com/tools/animationviewer.html)
