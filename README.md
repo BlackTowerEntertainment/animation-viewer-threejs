@@ -22,13 +22,15 @@ New Features
 Features
 --------------------------
 - HTML5
+- Debugging info for any geometry with bones
 - Debug info including bone orientations, and tree structure
 - Attachment points
 - Wireframe mode
 - Animation play / pause
-- Active animation selection
+- Multi-animation support
 - Frame stepping
 - Diffuse mapping
+- Lighting, material, and background color live edit
 - Test model
 
 ![screenshot 2014-04-03 22 23 27](https://cloud.githubusercontent.com/assets/5099279/2612155/e5e33b96-bbb9-11e3-8c2f-2d6450056d32.png)
