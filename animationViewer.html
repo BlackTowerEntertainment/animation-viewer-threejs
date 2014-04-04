@@ -15,56 +15,116 @@
             margin: 0;
             overflow: hidden;
         }
-
-        h1
+        .panel:hover
         {
-            background-color: rgba(120,120,120,0.8);
+            background-color: rgba(0, 33, 52, 0.90);
+        }
+
+        .panel
+        {
+            padding: 1px;
+            margin: 5px;
+            min-width: 272px;
+            background-color: rgba(0, 33, 52, 0.6);
+            border: solid 2px rgba(33,33,33,.8);
+        }
+
+        .toggler-header-collapsed:before {
+            content: "+";
+            margin: 0 4px;
+        }
+
+        .toggler-header-expanded:before {
+            content: "-";
+            margin: 0 6px;
+        }
+        .toggler-header-expanded
+        {
+            margin-bottom: 8px;
+        }
+
+        .toggler-header-collapsed
+        {
+            margin-bottom: 0px;
+        }
+
+        input, textarea, keygen, select, button, isindex {
+            font-family: monospace;
+        }
+
+        .panelTitle:hover
+        {
+            cursor: pointer;
+            background-color: #005580;
+        }
+
+        .panelContent
+        {
+
+        }
+
+        .heading
+        {
+            font-weight: bold;
+            font-size: x-large;
+            text-align: center;
+            background-color: #002e4c;
+            border-bottom: 6px groove rgba(221, 221, 221, 0.21);
+            border-left: 2px solid rgba(221, 221, 221, 0.21);
+            border-right: 3px groove rgba(221, 221, 221, 0.21);
+            border-top: 2px ridge rgba(221, 221, 221, 0.21);
+        }
+
+        .panelTitle
+        {
+            text-align: center;
+            background-color: #002e4c;
+            font-weight: bold;
+            border-bottom: 6px groove rgba(221, 221, 221, 0.21);
+            border-left: 2px solid rgba(221, 221, 221, 0.21);
+            border-right: 3px groove rgba(221, 221, 221, 0.21);
+            border-top: 2px ridge rgba(221, 221, 221, 0.21);
         }
 
         #boneListing{
-            position: absolute;
-            float:right;
-            background-color: rgba(54, 54, 85, 0.4);
-            min-width: 200px;
-            min-height: 500px;
-            top: 90px;
-            right: 10px;
-            padding: 12px;
-            margin: 5px;
             text-align: right;
+            float:right;
+            clear:right;
+            max-height: 45%;
         }
 
-
         #animationPanel{
-            position: absolute;
+            text-align: left;
             float:left;
-            background-color: rgba(54, 54, 85, 0.4);
-            min-width: 200px;
-            min-height: 110px;
-            top: 90px;
-            left: 10px;
-            padding: 12px;
-            margin: 5px;
-            text-align: right;
+            clear:left;
+        }
+
+        .subHeading {
+            text-align: left;
+            font-weight: bold;
+            margin-top: 4px;
+            margin-bottom: 6px;
+            font-size: larger;
+        }
+        .subHeading:before{
+            content: "[";
+        }
+        .subHeading:after {
+            content: "]";
         }
 
         #texturePanel{
-            position: absolute;
             float:left;
-            background-color: rgba(54, 54, 85, 0.4);
-            width: 258px;
-            height: 300px;
-            top: 280px;
-            left: 10px;
-            padding: 12px;
-            margin: 5px;
-            text-align: right;
+            clear:left;
         }
 
-        #buttonPanel{
-            background-color: rgba(34, 34, 45, 0.7);
-            margin: 3px;
-            padding: 4px;
+        .spacingPane {
+            height:100px;
+        }
+        #settingsPanel {
+            text-align: justify;
+            float: right;
+            clear: right;
         }
 
         #info {
@@ -74,48 +134,94 @@
             left: 25%;
         }
         a {
-            color: #f00;
+            color: #df0000;
+        }
+
+        input[type="color"]
+        {
+            border: none;
+            padding: 0;
+            background-color: transparent;
+            margin: 2px;
+        }
+        #leftColumn
+        {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #rightColumn
+        {
+            position: absolute;
+            right: 0;
+            top: 0;
         }
     </style>
 </head>
 <body>
-<div id="info"><h1>Animation Viewer</h1>
-    <a href="http://blacktowerentertainment.com">Black Tower Entertainment</a><br>
-    <b>Drag .js animation files, and textures onto this screen</b>
+<div id="info"><div class="panel"><div class="heading">Animation Viewer</div></div>
+    <b>Drag .js animation files, and textures onto this screen</b><br>
+    <a href="http://blacktowerentertainment.com/blog">Black Tower Entertainment</a><br>
+</div>
+<div id="rightColumn">
+    <div class="spacingPane"></div>
+    <div id="settingsPanel" class="panel">
+        <div class="panelTitle">Configuration</div>
+        <div class="panelContent">
+            <div class="subHeading">Render</div>
+            <button onclick="editor.toggleBoneVisibility()">DebugInfo</button>
+            <button onclick="editor.toggleModelVisibility()">ModelInfo</button>
+            <button onclick="editor.toggleWireframe()">Wireframe</button>
+            <div class="subHeading">Background Color</div>
+            <input type="color" id="inputBackgroundColor">
+            <div class="subHeading">Material</div>
+            Color<input type="color" id="materialColor">
+            Ambient<input type="color" id="materialAmbientColor">
+            Emissive<input type="color" id="materialEmissiveColor">
+            <div class="subHeading">Light</div>
+            Ambient<input type="color" id="ambientLightColor">
+            Directional<input type="color" id="directionalLightColor">
+        </div>
     </div>
+    <div id="boneListing" class="panel"><div class="panelTitle">Bone Attachments</div><div class="panelContent" id="bonePanel"><a class="testButton" href="#">Load TestModel</a></div>
+    </div>
+</div>
+<div id="leftColumn">
+    <div class="spacingPane"></div>
+    <div class="panel" id="texturePanel">
+        <div class="panelTitle">Texture</div>
+        <div class="panelContent">
+            <div id="textureDiv">
+                <img width="256px" height="256px" id="textureImage">
+                <br><span>Drag image here to load</span>
+            </div>
+        </div>
+    </div>
+    <div class="panel" id="animationPanel">
+        <div class="panelTitle">Animation</div>
+        <div class="panelContent">
+            <div class="subHeading">Active Animation</div>
+            <div id="animationPanelContent">
+                <a class="testButton" href="#">Load TestModel</a>
+            </div>
+            <div class="subHeading">Animation Speed</div>
+            <select id="speedSelect">
+                <option name=".25">(.125)x</option>
+                <option name=".25">(.25)x</option>
+                <option name=".33">(.33x)</option>
+                <option name=".5">(.5x)</option>
+                <option name="1" selected="selected">(1x)</option>
+                <option name="2">(2x)</option>
+                <option name="3">(4x)</option>
+                <option name="4">(8x)</option>
+            </select>
+            <div class="subHeading">Animation</div>
+            <button onclick="editor.toggleAnimation()">Toggle Play</button>
+            <button onclick="editor.stepAnimation()">Step</button>
+        </div>
+    </div>
+</div>
 <div id="container"></div>
-<div id="boneListing"><b style="text-align: left">Bone Attachments</b><hr><br><div id="bonePanel"><a class="testButton" href="#">Load TestModel</a></div>
-    <div id="buttonPanel">
-        <button onclick="editor.toggleBoneVisibility()">DebugInfo</button>
-        <button onclick="editor.toggleAnimation()">Animation</button>
-        <button onclick="editor.toggleWireframe()">Wireframe</button>
-        <button onclick="editor.stepAnimation()">Step</button>
-    </div>
-</div>
-<div id="animationPanel">
-    <b style="text-align: left">Animation</b><hr>
-    Active Animation: <div id="animationPanelContent">
-    <a class="testButton" href="#">Load TestModel</a>
-    </div>
-    Animation Speed:
-    <select id="speedSelect">
-        <option name=".25">(.125)x</option>
-        <option name=".25">(.25)x</option>
-        <option name=".33">(.33x)</option>
-        <option name=".5">(.5x)</option>
-        <option name="1" selected="selected">(1x)</option>
-        <option name="2">(2x)</option>
-        <option name="3">(4x)</option>
-        <option name="4">(8x)</option>
-    </select>
-</div>
-<div id="texturePanel">
-    <b style="text-align: left">Texture</b><hr>
-    <div id="textureDiv">
-        <img width="256px" height="256px" id="textureImage">
-        Drag image here to load
-    </div>
-</div>
 <script src="js/libs/three.min.js"></script>
 <script src="js/libs/stats.min.js"></script>
 <script src="js/libs/OrbitControls.js"></script>
@@ -126,14 +232,117 @@
     var clock = new THREE.Clock();
     editor = {};
     animating = true;
+
+    //TODO MAKE class for color node
+    ColorUI = function(domId, changeCallback)
+    {
+        this.node = document.getElementById(domId);
+        this.node.onchange = changeCallback;
+    };
+
+    ColorUI.prototype =
+    {
+        constructor : ColorUI,
+
+        Get : function()
+        {
+            return new THREE.Color(this.node.value);
+        },
+
+        Set : function(color)
+        {
+            this.node.value = "#" + color.getHexString();
+        }
+    };
+
+    var ambientLightColorUI =  new ColorUI("ambientLightColor",
+        function(event)
+        {
+            editor.ambientLight.color = ambientLightColorUI.Get();
+        }
+    );
+
+    var directionalLightColorUI =  new ColorUI("directionalLightColor",
+        function(event)
+        {
+            if(editor.mesh)
+                editor.directionalLight.color = directionalLightColorUI.Get();
+        }
+    );
+
+    var materialColorUI =  new ColorUI("materialColor",
+        function(event)
+        {
+            if(editor.mesh)
+                editor.mesh.material.color = materialColorUI.Get();
+        }
+    );
+
+    var materialEmissiveColorUI =  new ColorUI("materialEmissiveColor",
+        function(event)
+        {
+            if(editor.mesh)
+                editor.mesh.material.emissive.setStyle(event.target.value);
+        }
+    );
+    var materialAmbientColorUI =  new ColorUI("materialAmbientColor",
+        function(event)
+        {
+            if(editor.mesh)
+                editor.mesh.material.ambient.setStyle(event.target.value);
+        }
+    );
+    var backgroundColorUI =  new ColorUI("inputBackgroundColor",
+        function(event)
+        {
+            renderer.setClearColor(event.target.value);
+        }
+    );
+
+    ambientLightColorUI.Set(new THREE.Color(0xFFFFFF));
+    directionalLightColorUI.Set(new THREE.Color(0xFFFFFF));
+    materialColorUI.Set(new THREE.Color(0xFFFFFF));
+    materialAmbientColorUI.Set(new THREE.Color(0xDDDDDD));
+    materialEmissiveColorUI.Set(new THREE.Color(0x000000));
+    backgroundColorUI.Set(new THREE.Color(0x353535));
+
     init();
+    SetupPanels();
     document.getElementById("speedSelect").onchange = function(event)
     {
         animationSpeed = parseFloat(event.target.selectedOptions[0].attributes[0].nodeValue);
     };
+    function SetupPanels()
+    {
+        var divs = document.getElementsByClassName("panel");
+        for(var id = 0; id < divs.length; ++id)
+        {
+            if(divs[id].children[1])
+            {
+                divs[id].children[0].classList.add("toggler-header-expanded");
+                divs[id].children[0].addEventListener("click", function(event)
+                {
+                    var headerNode = event.target.parentNode.children[0];
+                    var contentNode = event.target.parentNode.children[1];
 
+                    if(headerNode.classList.contains("toggler-header-expanded"))
+                    {
+                        headerNode.classList.remove("toggler-header-expanded");
+                        headerNode.classList.add("toggler-header-collapsed");
+                        contentNode.style.display = "none";
+                    }
+                    else
+                    {
+                        headerNode.classList.remove("toggler-header-collapsed");
+                        headerNode.classList.add("toggler-header-expanded");
+                        contentNode.style.display = "inherit";
+                    }
+                });
+            }
+        }
+    }
     buttons = document.getElementsByClassName("testButton");
-    for(var id = 0; id < buttons.length; ++id)
+    for(id = 0; id < buttons.length; ++id)
     {
         buttons[id].addEventListener("click", function(event)
         {
@@ -232,19 +441,18 @@
         editor.camera.position.set( 0, 105, 450 );
         editor.camera.lookAt(new THREE.Vector3());
         editor.scene = new THREE.Scene();
-        editor.scene.fog = new THREE.FogExp2( 0x333333, 0.0003 );
+        editor.scene.fog = new THREE.FogExp2( backgroundColorUI.Get(), 0.0003 );
         editor.boneScene = new THREE.Scene();
         scene = editor.scene;
-        var dirLight = new THREE.DirectionalLight( 0xffffff,.6 );
-        dirLight.position.set( 40, -4, -4 ).normalize();
-        scene.add( dirLight );
-        var light = new THREE.AmbientLight( 0xffffff,.4 );
-        scene.add( light );
-        editor.boneScene.add( light );
-        renderer = new THREE.WebGLRenderer( { antialias: true } );
-
-        renderer.setClearColor( scene.fog.color, 1 );
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        editor.directionalLight = new THREE.DirectionalLight( directionalLightColorUI.Get(),1.0 );
+        editor.directionalLight.position.set(40, -4, -4).normalize();
+        scene.add(editor.directionalLight);
+        editor.ambientLight = new THREE.AmbientLight(ambientLightColorUI.Get());
+        scene.add(editor.ambientLight);
+        //editor.boneScene.add(editor.ambientLight);
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setClearColor(scene.fog.color, 1);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.sortObjects = true;
         renderer.domElement.tabIndex = 0;
         orbitControls = new THREE.OrbitControls(editor.camera, renderer.domElement);
@@ -361,9 +569,10 @@ AddAnimationsToHandler = function(geometry)
     }
 };
 
+
 editor.instanceMesh = function(geometry, parentParam)
 {
-    var numBones, j, normalMat, mesh;
+    var numBones, j, normalMat, mesh, color, emissiveColor, ambientColor;
     if(this.mesh && !parentParam)
     {
         this.scene.remove(this.mesh);
@@ -390,7 +599,10 @@ editor.instanceMesh = function(geometry, parentParam)
         geometry.uvsNeedUpdate = true;
         if (geometry.animation || geometry.animations) {
             AddAnimationsToHandler(geometry);
-            normalMat = new THREE.MeshLambertMaterial({ emissive: 0xCCCCCC, skinning : true, shininess : 0.36, Specular: 0x595959});
+            color = materialColorUI.Get();
+            emissiveColor = materialEmissiveColorUI.Get();
+            ambientColor = materialAmbientColorUI.Get();
+            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient : ambientColor, skinning : true});
             if(texture)
                 normalMat.map = texture;
             mesh = new THREE.SkinnedMesh(geometry, normalMat, false);
@@ -428,11 +640,15 @@ editor.instanceMesh = function(geometry, parentParam)
                 GenerateAnimationMenu(mesh);
                 this.geometry = geometry;
                 this.bonesVisible = true;
+                this.meshVisible = true;
             }
         }
         else
         {
-            normalMat = new THREE.MeshLambertMaterial({ emissive: 0xCCCCCC, shininess : 0.36, Specular: 0x595959});
+            color = materialColorUI.Get();
+            emissiveColor = materialEmissiveColorUI.Get();
+            ambientColor = materialAmbientColorUI.Get();
+            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient:ambientColor});
             if(this.mesh && this.mesh.material.map)
                 normalMat.map = this.mesh.material.map;
             mesh = new THREE.Mesh(geometry, normalMat, false);
@@ -493,6 +709,15 @@ editor.toggleBoneVisibility = function()
     }
 };
 
+
+editor.toggleModelVisibility = function()
+{
+    if(!this.mesh)
+        return;
+    this.meshVisible = !this.meshVisible;
+    this.mesh.visible = this.meshVisible;
+};
+
 editor.toggleWireframe = function()
 {
     if(this.mesh)
@@ -505,15 +730,32 @@ editor.toggleWireframe = function()
                 object.material.wireframe = wireframe;
         });
     }
-}
+};
 
 editor.addObject = function( object, parentParam)
 {
     this.instanceMesh(object.geometry, parentParam);
 };
 
+document.addEventListener('dragover',
+    function(event)
+    {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+    }, false);
+
+document.addEventListener('drop',
+    function(event)
+    {
+        event.preventDefault();
+        loadFile(event.dataTransfer.files[0]);
+    }, false);
+
+///////////////////////////////////////////////////////
+//from three.js loader
 this.loadFile = function (file, parentParam)
 {
+    var reader;
     if(!file)
         return;
     var filename = file.name;
@@ -526,7 +768,7 @@ this.loadFile = function (file, parentParam)
         case 'dds':
         case 'mp4':
         case 'png':
-            var reader = new FileReader();
+            reader = new FileReader();
             reader.addEventListener( 'load', function ( event ) {
 
                     newTexture = new THREE.ImageUtils.loadTexture(event.target.result, {}, function(newTexture)
@@ -552,7 +794,7 @@ this.loadFile = function (file, parentParam)
             break;
         case 'babylon':
 
-            var reader = new FileReader();
+            reader = new FileReader();
             reader.addEventListener( 'load', function ( event ) {
 
                 var contents = event.target.result;
@@ -569,8 +811,7 @@ this.loadFile = function (file, parentParam)
             break;
 
         case 'ctm':
-
-            var reader = new FileReader();
+            reader = new FileReader();
             reader.addEventListener( 'load', function ( event ) {
 
                 var contents = event.target.result;
@@ -579,29 +820,22 @@ this.loadFile = function (file, parentParam)
                 stream.offset = 0;
 
                 var loader = new THREE.CTMLoader();
-                loader.createModelClassic( new CTM.File( stream ), function( geometry ) {
-
+                loader.createModelClassic( new CTM.File( stream ), function( geometry )
+                {
                     geometry.sourceType = "ctm";
                     geometry.sourceFile = file.name;
-
                     var material = new THREE.MeshPhongMaterial();
-
                     var mesh = new THREE.Mesh( geometry, material );
                     mesh.name = filename;
-
                     editor.addObject( mesh );
-
                 } );
-
             }, false );
             reader.readAsBinaryString( file );
-
             break;
-
         case 'dae':
-
-            var reader = new FileReader();
-            reader.addEventListener( 'load', function ( event ) {
+            reader = new FileReader();
+            reader.addEventListener('load', function(event)
+            {
 
                 var contents = event.target.result;
 
@@ -609,27 +843,21 @@ this.loadFile = function (file, parentParam)
                 var xml = parser.parseFromString( contents, 'text/xml' );
 
                 var loader = new THREE.ColladaLoader();
-                loader.parse( xml, function ( collada ) {
-
+                loader.parse(xml, function (collada)
+                {
                     collada.scene.name = filename;
-
                     editor.addObject( collada.scene, collada.skins);
-
-                } );
-
-            }, false );
-            reader.readAsText( file );
-
+                });
+            }, false);
+            reader.readAsText(file);
             break;
 
         case 'js':
         case 'json':
-
         case '3geo':
         case '3mat':
         case '3obj':
         case '3scn':
-
             var reader = new FileReader();
             reader.addEventListener( 'load', function ( event ) {
                 var contents = event.target.result;
@@ -880,22 +1108,7 @@ var handleJSON = function (data, file, filename, parentParam)
     }
 
 };
-
-document.addEventListener('dragover', function (event)
-{
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-}, false);
-
-document.addEventListener('drop', function (event)
-{
-    event.preventDefault();
-    loadFile( event.dataTransfer.files[ 0 ] );
-}, false );
-
-
 </script>
-
 </body>
 </html>
 
