@@ -597,7 +597,8 @@ editor.instanceMesh = function(geometry, parentParam)
     {
         geometry.buffersNeedUpdate = true;
         geometry.uvsNeedUpdate = true;
-        if (geometry.animation || geometry.animations) {
+        if (geometry.animation || geometry.animations || geometry.bones)
+        {
             AddAnimationsToHandler(geometry);
             color = materialColorUI.Get();
             emissiveColor = materialEmissiveColorUI.Get();
@@ -606,7 +607,23 @@ editor.instanceMesh = function(geometry, parentParam)
             if(texture)
                 normalMat.map = texture;
             mesh = new THREE.SkinnedMesh(geometry, normalMat, false);
-            if(!parentParam)
+        }
+        else
+        {
+            color = materialColorUI.Get();
+            emissiveColor = materialEmissiveColorUI.Get();
+            ambientColor = materialAmbientColorUI.Get();
+            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient:ambientColor});
+            if(this.mesh && this.mesh.material.map)
+                normalMat.map = this.mesh.material.map;
+            mesh = new THREE.Mesh(geometry, normalMat, false);
+        }
+        this.meshVisible = true;
+
+        //Generate rig data
+        if(!parentParam)
+        {
+            if(mesh.bones && mesh.bones.length > 0)
             {
                 numBones = mesh.bones.length;
                 this.bones = [];
@@ -640,18 +657,7 @@ editor.instanceMesh = function(geometry, parentParam)
                 GenerateAnimationMenu(mesh);
                 this.geometry = geometry;
                 this.bonesVisible = true;
-                this.meshVisible = true;
             }
-        }
-        else
-        {
-            color = materialColorUI.Get();
-            emissiveColor = materialEmissiveColorUI.Get();
-            ambientColor = materialAmbientColorUI.Get();
-            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient:ambientColor});
-            if(this.mesh && this.mesh.material.map)
-                normalMat.map = this.mesh.material.map;
-            mesh = new THREE.Mesh(geometry, normalMat, false);
         }
     }
     if(editor.camera && !parentParam)
