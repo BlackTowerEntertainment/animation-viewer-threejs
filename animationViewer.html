@@ -60,10 +60,10 @@
 
         .panelContent
         {
-
             max-height: 350px;
             overflow: overlay;
         }
+
 
         .heading
         {
@@ -94,7 +94,26 @@
             clear:right;
         }
 
-        #animationPanel{
+        #geometryPanel
+        {
+            text-align: right;
+            float:right;
+            clear:right;
+        }
+        #rigPanel
+        {
+            text-align: right;
+            float:right;
+            clear:right;
+        }
+        #animationImportPanel
+        {
+            text-align: right;
+            float:right;
+            clear:right;
+        }
+
+        #animationControlPanel {
             text-align: left;
             float:left;
             clear:left;
@@ -170,26 +189,54 @@
         <div class="panelTitle">Configuration</div>
         <div class="panelContent">
             <div class="subHeading">Render</div>
-            <button onclick="editor.toggleBoneVisibility()">DebugInfo</button>
-            <button onclick="editor.toggleModelVisibility()">ModelInfo</button>
-            <button onclick="editor.toggleWireframe()">Wireframe</button>
+            <button onclick="animationViewer.ToggleBoneVisibility()">DebugInfo</button>
+            <button onclick="animationViewer.ToggleModelVisibility()">ModelInfo</button>
+            <button onclick="animationViewer.ToggleWireframe()">Wireframe</button>
             <div class="subHeading">Background Color</div>
+            <form>
             <input type="color" id="inputBackgroundColor">
             <div class="subHeading">Material</div>
-            Color<input type="color" id="materialColor">
-            Ambient<input type="color" id="materialAmbientColor">
-            Emissive<input type="color" id="materialEmissiveColor">
-            <div class="subHeading">Light</div>
-            Ambient<input type="color" id="ambientLightColor">
-            Directional<input type="color" id="directionalLightColor">
+                <label>Color</label><input type="color" id="materialColor">
+                Ambient<input type="color" id="materialAmbientColor">
+                Emissive<input type="color" id="materialEmissiveColor">
+                <div class="subHeading">Light</div>
+                Ambient<input type="color" id="ambientLightColor">
+                Directional<input type="color" id="directionalLightColor">
+            </form>
         </div>
     </div>
-    <div id="boneListing" class="panel"><div class="panelTitle">Bone Attachments</div><div class="panelContent" id="bonePanel"><a class="testButton" href="#">Load TestModel</a></div>
+
+    <div id="boneListing" class="panel">
+        <div class="panelTitle">Bone Attachments</div>
+        <div class="panelContent" id="bonePanel">
+            <a class="testButton" href="#">Load TestModel</a>
+        </div>
+    </div>
+
+    <div id="geometryPanel" class="panel">
+        <div class="panelTitle">Geometry</div>
+        <div class="panelContent">
+            Drag geometry data here
+        </div>
+    </div>
+
+    <div id="rigPanel" class="panel">
+        <div class="panelTitle">Rig</div>
+        <div class="panelContent">
+            Drag your rig here
+        </div>
+    </div>
+
+    <div id="animationImportPanel" class="panel">
+        <div class="panelTitle">Animations</div>
+        <div class="panelContent">
+            Drag animations here
+        </div>
     </div>
 </div>
 <div id="leftColumn">
     <div class="spacingPane"></div>
-    <div class="panel" id="texturePanel">
+    <div id="texturePanel" class="panel">
         <div class="panelTitle">Texture</div>
         <div class="panelContent">
             <div id="textureDiv">
@@ -198,7 +245,7 @@
             </div>
         </div>
     </div>
-    <div class="panel" id="animationPanel">
+    <div id="animationControlPanel" class="panel">
         <div class="panelTitle">Animation</div>
         <div class="panelContent">
             <div class="subHeading">Active Animation</div>
@@ -217,8 +264,8 @@
                 <option name="4">(8x)</option>
             </select>
             <div class="subHeading">Animation</div>
-            <button onclick="editor.toggleAnimation()">Toggle Play</button>
-            <button onclick="editor.stepAnimation()">Step</button>
+            <button onclick="animationViewer.ToggleAnimation()">Toggle Play</button>
+            <button onclick="animationViewer.stepAnimation()">Step</button>
         </div>
     </div>
 </div>
@@ -227,14 +274,17 @@
 <script src="js/libs/stats.min.js"></script>
 <script src="js/libs/OrbitControls.js"></script>
 <script>
-    var animationSpeed = 1.0;
-    var container, stats, scene, renderer;
-    var animation, selectAnimNode, texture;
-    var clock = new THREE.Clock();
-    editor = {};
-    animating = true;
+    AnimationViewer = function()
+    {
+        this.clock = new THREE.Clock();
+        this.animationSpeed = 1.0;
+    };
 
-    //TODO MAKE class for color node
+    AnimationViewer.prototype =
+    {
+        constructor: AnimationViewer
+    };
+
     ColorUI = function(domId, changeCallback)
     {
         this.node = document.getElementById(domId);
@@ -256,71 +306,101 @@
         }
     };
 
-    var ambientLightColorUI =  new ColorUI("ambientLightColor",
-        function(event)
-        {
-            editor.ambientLight.color = ambientLightColorUI.Get();
-        }
-    );
-
-    var directionalLightColorUI =  new ColorUI("directionalLightColor",
-        function(event)
-        {
-            if(editor.mesh)
-                editor.directionalLight.color = directionalLightColorUI.Get();
-        }
-    );
-
-    var materialColorUI =  new ColorUI("materialColor",
-        function(event)
-        {
-            if(editor.mesh)
-                editor.mesh.material.color = materialColorUI.Get();
-        }
-    );
-
-    var materialEmissiveColorUI =  new ColorUI("materialEmissiveColor",
-        function(event)
-        {
-            if(editor.mesh)
-                editor.mesh.material.emissive.setStyle(event.target.value);
-        }
-    );
-    var materialAmbientColorUI =  new ColorUI("materialAmbientColor",
-        function(event)
-        {
-            if(editor.mesh)
-                editor.mesh.material.ambient.setStyle(event.target.value);
-        }
-    );
-    var backgroundColorUI =  new ColorUI("inputBackgroundColor",
-        function(event)
-        {
-            renderer.setClearColor(event.target.value);
-        }
-    );
-
-    ambientLightColorUI.Set(new THREE.Color(0xFFFFFF));
-    directionalLightColorUI.Set(new THREE.Color(0xFFFFFF));
-    materialColorUI.Set(new THREE.Color(0xFFFFFF));
-    materialAmbientColorUI.Set(new THREE.Color(0xDDDDDD));
-    materialEmissiveColorUI.Set(new THREE.Color(0x000000));
-    backgroundColorUI.Set(new THREE.Color(0x353535));
-
-    init();
-    SetupPanels();
-    document.getElementById("speedSelect").onchange = function(event)
+    AnimationViewer.prototype.SetupColorUI = function()
     {
-        animationSpeed = parseFloat(event.target.selectedOptions[0].attributes[0].nodeValue);
+        var self = this;
+        this.ambientLightColorUI =  new ColorUI("ambientLightColor",
+            function(event)
+            {
+                self.ambientLight.color = self.ambientLightColorUI.Get();
+            }
+        );
+        this.directionalLightColorUI =  new ColorUI("directionalLightColor",
+            function(event)
+            {
+                if(self.mesh)
+                    self.directionalLight.color = self.directionalLightColorUI.Get();
+            }
+        );
+        this.materialColorUI =  new ColorUI("materialColor",
+            function(event)
+            {
+                if(self.mesh)
+                    self.mesh.material.color = self.materialColorUI.Get();
+            }
+        );
+        this.materialEmissiveColorUI =  new ColorUI("materialEmissiveColor",
+            function(event)
+            {
+                if(self.mesh)
+                    self.mesh.material.emissive.setStyle(event.target.value);
+            }
+        );
+        this.materialAmbientColorUI =  new ColorUI("materialAmbientColor",
+            function(event)
+            {
+                if(self.mesh)
+                    self.mesh.material.ambient.setStyle(event.target.value);
+            }
+        );
+        this.backgroundColorUI =  new ColorUI("inputBackgroundColor",
+            function(event)
+            {
+                self.renderer.setClearColor(event.target.value);
+            }
+        );
+        //Set Default Colors
+        this.ambientLightColorUI.Set(new THREE.Color(0xFFFFFF));
+        this.directionalLightColorUI.Set(new THREE.Color(0xFFFFFF));
+        this.materialColorUI.Set(new THREE.Color(0xFFFFFF));
+        this.materialAmbientColorUI.Set(new THREE.Color(0xDDDDDD));
+        this.materialEmissiveColorUI.Set(new THREE.Color(0x000000));
+        this.backgroundColorUI.Set(new THREE.Color(0x353535));
     };
-    function SetupPanels()
+
+    AnimationViewer.prototype.Setup = function()
+    {
+        this.SetupExampleButtons("example_models/example_model.js");
+        this.SetupPanels();
+        this.SetupColorUI();
+        this.SetupFileDrops();
+        //Add speed select onchange
+        document.getElementById("speedSelect").onchange = function(event)
+        {
+            animationViewer.SetAnimationSpeed(parseFloat(event.target.selectedOptions[0].attributes[0].nodeValue));
+        };
+    };
+
+    AnimationViewer.prototype.SetAnimationSpeed = function(speed)
+    {
+        this.animationSpeed = speed;
+    };
+
+    AnimationViewer.prototype.SetupFileDrops = function()
+    {
+        document.addEventListener('dragover',
+            function(event)
+            {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+            }, false);
+        document.addEventListener('drop',
+            function(event)
+            {
+                event.preventDefault();
+                LoadFile(event.dataTransfer.files[0]);
+            }, false);
+    };
+
+    AnimationViewer.prototype.SetupPanels = function()
     {
         var divs = document.getElementsByClassName("panel");
         for(var id = 0; id < divs.length; ++id)
         {
             if(divs[id].children[1])
             {
-                divs[id].children[0].classList.add("toggler-header-expanded");
+                if(!divs[id].children[0].classList.contains("toggler-header-expanded") && !divs[id].children[0].classList.contains("toggler-header-collapsed"))
+                    divs[id].children[0].classList.add("toggler-header-expanded");
                 divs[id].children[0].addEventListener("click", function(event)
                 {
                     var headerNode = event.target.parentNode.children[0];
@@ -341,42 +421,36 @@
                 });
             }
         }
-    }
-    buttons = document.getElementsByClassName("testButton");
-    for(id = 0; id < buttons.length; ++id)
+    };
+
+    AnimationViewer.prototype.SetupExampleButtons = function(filename)
     {
-        buttons[id].addEventListener("click", function(event)
+        var buttons = document.getElementsByClassName("testButton");
+        for(var id = 0; id < buttons.length; ++id)
         {
-            var jsonLoader = new THREE.JSONLoader();
-            jsonLoader.load( "example_models/example_model.js", function(geometry)
+            buttons[id].addEventListener("click", function(event)
             {
-                editor.instanceMesh(geometry);
+                var jsonLoader = new THREE.JSONLoader();
+                jsonLoader.load(filename, function(geometry)
+                {
+                    animationViewer.InstanceMesh(geometry);
+                });
             });
-        });
-    }
+        }
+    };
 
-    function PlayAnimation(name)
+    AnimationViewer.prototype.SetTexture = function(texture)
     {
-        if(!name && name == "")
-            return;
-        if(animation)
-            animation.stop();
-        var mesh = editor.mesh;
-        if(!mesh)
-            return;
-        animation = new THREE.Animation(
-                editor.mesh,
-                name);
-        animation.play();
-    }
+        this.texture = texture;
+    };
 
-    function GenerateAnimationMenu(mesh)
+    AnimationViewer.prototype.GenerateAnimationMenu = function(mesh)
     {
         if(!mesh.geometry.animations && !mesh.geometry.animation)
             return;
         var rootNode = document.getElementById("animationPanelContent");
         rootNode.innerHTML = "";
-        selectAnimNode = document.createElement("select");
+        this.selectAnimNode = document.createElement("select");
         if(mesh.geometry.animations)
         {
             var length = mesh.geometry.animations.length;
@@ -389,7 +463,7 @@
                 var node = document.createElement("option");
                 node.name = i;
                 node.innerHTML = name;
-                selectAnimNode.appendChild(node);
+                this.selectAnimNode.appendChild(node);
             }
 
         }
@@ -398,16 +472,16 @@
             node = document.createElement("option");
             node.name = 0;
             node.innerHTML = mesh.geometry.animation.name;
-            selectAnimNode.appendChild(node);
+            this.selectAnimNode.appendChild(node);
         }
-        selectAnimNode.onchange = function(event)
+        this.selectAnimNode.onchange = function(event)
         {
-            PlayAnimation(event.target.selectedOptions[0].innerHTML);
+            animationViewer.PlayAnimation(event.target.selectedOptions[0].innerHTML);
         };
-        rootNode.appendChild(selectAnimNode);
-    }
+        rootNode.appendChild(this.selectAnimNode);
+    };
 
-    function GenerateBoneListing(bones)
+    AnimationViewer.prototype.GenerateBoneListing = function(bones)
     {
         if(!bones)
             return;
@@ -428,339 +502,328 @@
                 if(event.target.files[0])
                 {
                     var file = event.target.files[0];
-                    loadFile(file, bones[event.target.name]);
+                    LoadFile(file, bones[event.target.name]);
                 }
             });
             boneNode.appendChild(button);
             rootNode.appendChild(boneNode);
         }
-    }
+    };
 
-    function init() {
-        container = document.getElementById( 'container' );
-        editor.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-        editor.camera.position.set( 0, 105, 450 );
-        editor.camera.lookAt(new THREE.Vector3());
-        editor.scene = new THREE.Scene();
-        editor.scene.fog = new THREE.FogExp2( backgroundColorUI.Get(), 0.0003 );
-        editor.boneScene = new THREE.Scene();
-        scene = editor.scene;
-        editor.directionalLight = new THREE.DirectionalLight( directionalLightColorUI.Get(),1.0 );
-        editor.directionalLight.position.set(40, -4, -4).normalize();
-        scene.add(editor.directionalLight);
-        editor.ambientLight = new THREE.AmbientLight(ambientLightColorUI.Get());
-        scene.add(editor.ambientLight);
-        //editor.boneScene.add(editor.ambientLight);
-        renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setClearColor(scene.fog.color, 1);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.sortObjects = true;
-        renderer.domElement.tabIndex = 0;
-        orbitControls = new THREE.OrbitControls(editor.camera, renderer.domElement);
+    AnimationViewer.prototype.PlayAnimation = function(name)
+    {
+        if(!name && name == "")
+            return;
+        if(this.animation)
+            this.animation.stop();
+        var mesh = this.mesh;
+        if(!mesh)
+            return;
+        this.animation = new THREE.Animation(
+                this.mesh,
+                name);
+        this.animation.play();
+    };
+
+    AnimationViewer.prototype.Initialize = function()
+    {
+        this.container = document.getElementById("container");
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+        this.camera.position.set(0, 105, 450);
+        this.camera.lookAt(new THREE.Vector3());
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.FogExp2(this.backgroundColorUI.Get(), 0.0003);
+        this.boneScene = new THREE.Scene();
+        this.directionalLight = new THREE.DirectionalLight(this.directionalLightColorUI.Get(),1.0);
+        this.directionalLight.position.set(40, -4, -4).normalize();
+        this.scene.add(this.directionalLight);
+        this.ambientLight = new THREE.AmbientLight(this.ambientLightColorUI.Get());
+        this.scene.add(this.ambientLight);
+        this.renderer = new THREE.WebGLRenderer({antialias: true});
+        this.renderer.setClearColor(this.scene.fog.color, 1);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.sortObjects = true;
+        this.renderer.domElement.tabIndex = 0;
+        this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.gridHalfSize = 320;
         this.gridSubDivisions = 32;
         this.gridHeight = 5;
         this.grid = new THREE.GridHelper(this.gridHalfSize, this.gridSubDivisions);
         this.grid.setColors(new THREE.Color("rgb(90,90,90)"), new THREE.Color("rgb(140,150,150)"));
         this.scene.add(this.grid);
-        container.appendChild( renderer.domElement );
+        this.stats = new Stats();
+        this.stats.domElement.style.position = 'absolute';
+        this.stats.domElement.style.top = '0px';
+        this.container.appendChild(this.renderer.domElement);
+        this.container.appendChild(this.stats.domElement);
+        this.animating = true;
+        window.addEventListener('resize', this.OnWindowResize.bind(this), false);
+        this.Animate();
 
-        stats = new Stats();
-        stats.domElement.style.position = 'absolute';
-        stats.domElement.style.top = '0px';
-        container.appendChild( stats.domElement );
+    };
 
-        window.addEventListener( 'resize', onWindowResize, false );
-        animate();
-    }
 
-    function reset()
+    AnimationViewer.prototype.OnWindowResize = function()
     {
-        editor.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
+    };
 
-    }
-
-    function onWindowResize() {
-        if(this.editor)
-        {
-            editor.camera.aspect = window.innerWidth / window.innerHeight;
-            editor.camera.updateProjectionMatrix();
-            renderer.setSize( window.innerWidth, window.innerHeight );
-        }
-    }
-
-    function update()
+    AnimationViewer.prototype.Update = function()
     {
+        var delta = this.clock.getDelta();
+        if(this.animating)
+            THREE.AnimationHandler.update( delta * this.animationSpeed );
+        this.stats.update();
+        this.orbitControls.update();
+        var rotationMatrix = new THREE.Matrix4();
 
-        var delta = clock.getDelta();
-        if(animating)
-            THREE.AnimationHandler.update( delta * animationSpeed );
-        stats.update();
-        orbitControls.update();
-        if(this.editor !== undefined)
+        if(this.bones)
         {
-            var rotationMatrix = new THREE.Matrix4();
-
-            if(this.editor.bones)
+            var numBones = this.bones.length;
+            for(var j = 0; j < numBones; ++j)
             {
-                var numBones = this.editor.bones.length;
-                for(var j = 0; j < numBones; ++j)
+                var bone = this.bones[j];
+                var skinMatrix = (this.mesh.bones[j].skinMatrix);
+                rotationMatrix.extractRotation(skinMatrix);
+                bone.position.setFromMatrixPosition(skinMatrix);
+                bone.rotation.setFromRotationMatrix(rotationMatrix);
+                bone.scale.setFromMatrixScale(skinMatrix);
+                var boneConnectionLength = bone.children.length-1;
+                for(var i = 0; i < boneConnectionLength; ++i)
                 {
-                    var bone = this.editor.bones[j];
-                    var skinMatrix = (this.editor.mesh.bones[j].skinMatrix);
-                    rotationMatrix.extractRotation(skinMatrix);
-                    bone.position.setFromMatrixPosition(skinMatrix);
-                    bone.rotation.setFromRotationMatrix(rotationMatrix);
-                    bone.scale.setFromMatrixScale(skinMatrix);
-                    var boneConnectionLength = bone.children.length-1;
-                    for(var i = 0; i < boneConnectionLength; ++i)
-                    {
-                        var child = this.editor.mesh.bones[j].children[i];
-                        var childHelper = bone.children[i+1];
-                        childHelper.setLength(child.position.length());
-                        childHelper.setDirection(new THREE.Vector3(child.position.x,child.position.y,child.position.z).normalize());
-                    }
+                    var child = this.mesh.bones[j].children[i];
+                    var childHelper = bone.children[i+1];
+                    childHelper.setLength(child.position.length());
+                    childHelper.setDirection(new THREE.Vector3(child.position.x,child.position.y,child.position.z).normalize());
                 }
-
-                var numAttachedObjects = this.editor.attachedObjects.length;
-                for(j = 0; j < numAttachedObjects; ++j)
-                {
-                    var object = this.editor.attachedObjects[j];
-                    object.position = object.userData.position;
-                    object.rotation = object.userData.rotation;
-                    object.scale = object.userData.scale;
-                }
-            }
-
-        }
-    }
-
-    function animate() {
-        requestAnimationFrame( animate, renderer.domElement );
-        update();
-        if(this.editor)
-        {
-            renderer.clear(true, true, true);
-            renderer.autoClear = false;
-            renderer.render( scene, this.editor.camera );
-            renderer.clear(false, true, true);
-            renderer.render( this.editor.boneScene, this.editor.camera );
-        }
-        renderer.autoClear = true;
-    }
-
-editor.setScene = function( scene )
-{
-    this.scene = scene;
-};
-
-AddAnimationsToHandler = function(geometry)
-{
-    if(geometry.animation)
-    {
-        THREE.AnimationHandler.add(geometry.animation);
-    }
-    else if(geometry.animations)
-    {
-        var length = geometry.animations.length;
-        for(var i = 0; i < length; ++i)
-        {
-            THREE.AnimationHandler.add(geometry.animations[i]);
-        }
-    }
-};
-
-
-editor.instanceMesh = function(geometry, parentParam)
-{
-    var numBones, j, normalMat, mesh, color, emissiveColor, ambientColor;
-    if(this.mesh && !parentParam)
-    {
-        this.scene.remove(this.mesh);
-        if(this.mesh.bones)
-        {
-            numBones = this.mesh.bones.length;
-            for(j = 0; j < numBones; ++j)
-            {
-                this.boneScene.remove(this.bones[j]);
             }
 
             var numAttachedObjects = this.attachedObjects.length;
             for(j = 0; j < numAttachedObjects; ++j)
             {
-                this.scene.remove(this.attachedObjects[j]);
-                this.attachedObjects = [];
+                var object = this.attachedObjects[j];
+                object.position = object.userData.position;
+                object.rotation = object.userData.rotation;
+                object.scale = object.userData.scale;
             }
         }
-        this.bones = [];
-    }
-    if(geometry)
+    };
+
+    AnimationViewer.prototype.Animate = function()
     {
-        geometry.buffersNeedUpdate = true;
-        geometry.uvsNeedUpdate = true;
-        if (geometry.animation || geometry.animations || geometry.bones)
+        requestAnimationFrame(this.Animate.bind(this), this.renderer.domElement);
+        this.Update();
+        this.renderer.clear(true, true, true);
+        this.renderer.autoClear = false;
+        this.renderer.render( this.scene, this.camera );
+        this.renderer.clear(false, true, true);
+        this.renderer.render( this.boneScene, this.camera );
+        this.renderer.autoClear = true;
+    };
+
+    AnimationViewer.prototype.SetScene = function(scene)
+    {
+        this.scene = scene;
+    };
+
+    AnimationViewer.prototype.InstanceMesh = function(geometry, parentParam)
+    {
+        var numBones, j, normalMat, mesh, color, emissiveColor, ambientColor;
+        if(this.mesh && !parentParam)
         {
-            AddAnimationsToHandler(geometry);
-            color = materialColorUI.Get();
-            emissiveColor = materialEmissiveColorUI.Get();
-            ambientColor = materialAmbientColorUI.Get();
-            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient : ambientColor, skinning : true});
-            if(texture)
-                normalMat.map = texture;
-            mesh = new THREE.SkinnedMesh(geometry, normalMat, false);
+            this.scene.remove(this.mesh);
+            if(this.mesh.bones)
+            {
+                numBones = this.mesh.bones.length;
+                for(j = 0; j < numBones; ++j)
+                {
+                    this.boneScene.remove(this.bones[j]);
+                }
+
+                var numAttachedObjects = this.attachedObjects.length;
+                for(j = 0; j < numAttachedObjects; ++j)
+                {
+                    this.scene.remove(this.attachedObjects[j]);
+                    this.attachedObjects = [];
+                }
+            }
+            this.bones = [];
+        }
+        if(geometry)
+        {
+            geometry.buffersNeedUpdate = true;
+            geometry.uvsNeedUpdate = true;
+            if (geometry.animation || geometry.animations || geometry.bones)
+            {
+                AddAnimationsToHandler(geometry);
+                color = this.materialColorUI.Get();
+                emissiveColor = this.materialEmissiveColorUI.Get();
+                ambientColor = this.materialAmbientColorUI.Get();
+                normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient : ambientColor, skinning : true});
+                if(this.texture)
+                    normalMat.map = this.texture;
+                mesh = new THREE.SkinnedMesh(geometry, normalMat, false);
+            }
+            else
+            {
+                color = this.materialColorUI.Get();
+                emissiveColor = this.materialEmissiveColorUI.Get();
+                ambientColor = this.materialAmbientColorUI.Get();
+                normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient:ambientColor});
+                if(this.mesh && this.mesh.material.map)
+                    normalMat.map = this.mesh.material.map;
+                mesh = new THREE.Mesh(geometry, normalMat, false);
+            }
+            this.meshVisible = true;
+
+            //Generate rig data
+            if(!parentParam)
+            {
+                if(mesh.bones && mesh.bones.length > 0)
+                {
+                    numBones = mesh.bones.length;
+                    this.bones = [];
+                    this.attachedObjects = [];
+                    for(j = 0; j < numBones; ++j)
+                    {
+                        var bone = mesh.bones[j];
+                        var sphereGeometry = new THREE.SphereGeometry(0.5);
+                        var boneMeshDebug = new THREE.Mesh(sphereGeometry, new THREE.MeshNormalMaterial());
+                        boneMeshDebug.material.wireframe = true;
+                        boneMeshDebug.position.copy(new THREE.Vector3().applyMatrix4(bone.skinMatrix));
+                        this.boneScene.add(boneMeshDebug);
+                        //Add transform helper
+                        var axisHelper = new THREE.AxisHelper( 7 );
+                        boneMeshDebug.add(axisHelper);
+
+                        var childLen = bone.children.length;
+                        for(var i = 0; i < childLen; ++i)
+                        {
+                            var child = bone.children[i];
+                            var lineLength = child.position.length();
+                            var arrowHelper = new THREE.ArrowHelper(child.position, new THREE.Vector3(), lineLength, 0xDD00AA);
+                            boneMeshDebug.add(arrowHelper);
+                            arrowHelper.name = child.name;
+                        }
+
+                        boneMeshDebug.userData = mesh.bones[j];
+                        this.bones[j] = boneMeshDebug;
+                    }
+                    this.GenerateBoneListing(this.bones);
+                    this.GenerateAnimationMenu(mesh);
+                    this.geometry = geometry;
+                    this.bonesVisible = true;
+                }
+            }
+        }
+        if(this.camera && !parentParam)
+        {
+            if(mesh && mesh.geometry)
+            {
+                mesh.geometry.computeBoundingSphere();
+                this.camera.lookAt(mesh.geometry.boundingSphere.center);
+                this.orbitControls.target = mesh.geometry.boundingSphere.center;
+            }
+        }
+        if(parentParam )
+        {
+            mesh.userData = parentParam;
+            this.attachedObjects.push(mesh);
+            this.scene.add(mesh);
         }
         else
         {
-            color = materialColorUI.Get();
-            emissiveColor = materialEmissiveColorUI.Get();
-            ambientColor = materialAmbientColorUI.Get();
-            normalMat = new THREE.MeshLambertMaterial({ emissive: emissiveColor, color: color, ambient:ambientColor});
-            if(this.mesh && this.mesh.material.map)
-                normalMat.map = this.mesh.material.map;
-            mesh = new THREE.Mesh(geometry, normalMat, false);
+            this.scene.add(mesh);
+            this.mesh = mesh;
         }
-        this.meshVisible = true;
+        if(this.selectAnimNode)
+            if(this.selectAnimNode.children.length > 0)
+                this.PlayAnimation(this.selectAnimNode.children[0].innerHTML);
+    };
 
-        //Generate rig data
-        if(!parentParam)
+    AnimationViewer.prototype.ToggleAnimation = function()
+    {
+        if(!this.bones)
+            return;
+        this.animating = !this.animating;
+    };
+
+    AnimationViewer.prototype.stepAnimation = function()
+    {
+        if(!this.animating)
+            THREE.AnimationHandler.update( 1/30 );
+    };
+
+    AnimationViewer.prototype.ToggleBoneVisibility = function()
+    {
+        if(!this.bones)
+            return;
+        this.bonesVisible = !this.bonesVisible;
+        var visibility = this.bonesVisible;
+        var length = this.mesh.bones.length;
+        for(var j = 0; j < length; ++j)
         {
-            if(mesh.bones && mesh.bones.length > 0)
+            this.bones[j].visible = visibility;
+            this.bones[j].traverse(function(object)
             {
-                numBones = mesh.bones.length;
-                this.bones = [];
-                this.attachedObjects = [];
-                for(j = 0; j < numBones; ++j)
-                {
-                    var bone = mesh.bones[j];
-                    var sphereGeometry = new THREE.SphereGeometry(0.5);
-                    var boneMeshDebug = new THREE.Mesh(sphereGeometry, new THREE.MeshNormalMaterial());
-                    boneMeshDebug.material.wireframe = true;
-                    boneMeshDebug.position.copy(new THREE.Vector3().applyMatrix4(bone.skinMatrix));
-                    this.boneScene.add(boneMeshDebug);
-                    //Add transform helper
-                    var axisHelper = new THREE.AxisHelper( 7 );
-                    boneMeshDebug.add(axisHelper);
+                object.visible = visibility;
+            });
+        }
+    };
 
-                    var childLen = bone.children.length;
-                    for(var i = 0; i < childLen; ++i)
-                    {
-                        var child = bone.children[i];
-                        var lineLength = child.position.length();
-                        var arrowHelper = new THREE.ArrowHelper(child.position, new THREE.Vector3(), lineLength, 0xDD00AA);
-                        boneMeshDebug.add(arrowHelper);
-                        arrowHelper.name = child.name;
-                    }
+    AnimationViewer.prototype.ToggleModelVisibility = function()
+    {
+        if(!this.mesh)
+            return;
+        this.meshVisible = !this.meshVisible;
+        this.mesh.visible = this.meshVisible;
+    };
 
-                    boneMeshDebug.userData = mesh.bones[j];
-                    this.bones[j] = boneMeshDebug;
-                }
-                GenerateBoneListing(this.bones);
-                GenerateAnimationMenu(mesh);
-                this.geometry = geometry;
-                this.bonesVisible = true;
+    AnimationViewer.prototype.ToggleWireframe = function()
+    {
+        if(this.mesh)
+        {
+            var wireframe = !this.mesh.material.wireframe;
+            this.mesh.material.wireframe = !wireframe;
+            this.mesh.traverse(function(object)
+            {
+               if(object.material)
+                    object.material.wireframe = wireframe;
+            });
+        }
+    };
+
+    AnimationViewer.prototype.AddObject = function( object, parentParam)
+    {
+        this.InstanceMesh(object.geometry, parentParam);
+    };
+
+    AddAnimationsToHandler = function(geometry)
+    {
+        if(geometry.animation)
+        {
+            THREE.AnimationHandler.add(geometry.animation);
+        }
+        else if(geometry.animations)
+        {
+            var length = geometry.animations.length;
+            for(var i = 0; i < length; ++i)
+            {
+                THREE.AnimationHandler.add(geometry.animations[i]);
             }
         }
-    }
-    if(editor.camera && !parentParam)
-    {
-        if(mesh && mesh.geometry)
-        {
-            mesh.geometry.computeBoundingSphere();
-            editor.camera.lookAt(mesh.geometry.boundingSphere.center);
-            orbitControls.target = mesh.geometry.boundingSphere.center;
-        }
-    }
-    if(parentParam )
-    {
-        mesh.userData = parentParam;
-        this.attachedObjects.push(mesh);
-        this.scene.add(mesh);
-    }
-    else
-    {
-        this.scene.add(mesh);
-        this.mesh = mesh;
-    }
-    if(selectAnimNode)
-        if(selectAnimNode.children.length > 0)
-            PlayAnimation(selectAnimNode.children[0].innerHTML);
-};
+    };
 
-editor.toggleAnimation = function()
-{
-    if(!this.bones)
-        return;
-    animating = !animating;
-};
-
-editor.stepAnimation = function()
-{
-    if(!animating)
-        THREE.AnimationHandler.update( 1/30 );
-};
-
-editor.toggleBoneVisibility = function()
-{
-    if(!this.bones)
-        return;
-    this.bonesVisible = !this.bonesVisible;
-    var visibility = this.bonesVisible;
-    var length = this.mesh.bones.length;
-    for(var j = 0; j < length; ++j)
-    {
-        this.bones[j].visible = visibility;
-        this.bones[j].traverse(function(object)
-        {
-            object.visible = visibility;
-        });
-    }
-};
-
-
-editor.toggleModelVisibility = function()
-{
-    if(!this.mesh)
-        return;
-    this.meshVisible = !this.meshVisible;
-    this.mesh.visible = this.meshVisible;
-};
-
-editor.toggleWireframe = function()
-{
-    if(this.mesh)
-    {
-        var wireframe = !this.mesh.material.wireframe;
-        this.mesh.material.wireframe = !wireframe;
-        this.mesh.traverse(function(object)
-        {
-           if(object.material)
-                object.material.wireframe = wireframe;
-        });
-    }
-};
-
-editor.addObject = function( object, parentParam)
-{
-    this.instanceMesh(object.geometry, parentParam);
-};
-
-document.addEventListener('dragover',
-    function(event)
-    {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-    }, false);
-
-document.addEventListener('drop',
-    function(event)
-    {
-        event.preventDefault();
-        loadFile(event.dataTransfer.files[0]);
-    }, false);
+var animationViewer = new AnimationViewer();
+animationViewer.Setup();
+animationViewer.Initialize();
 
 ///////////////////////////////////////////////////////
 //from three.js loader
-this.loadFile = function (file, parentParam)
+///////////////////////////////////////////////////////
+LoadFile = function (file, parentParam)
 {
     var reader;
     if(!file)
@@ -784,9 +847,9 @@ this.loadFile = function (file, parentParam)
 
                         img.addEventListener( "load" , function()
                         {
-                            editor.instanceMesh(editor.geometry);
+                            animationViewer.InstanceMesh(animationViewer.geometry);
                         });
-                        texture = newTexture;
+                        animationViewer.SetTexture(newTexture);
                         img.src = event.target.result;
                         img.style.width = 256;
                         img.style.width = 256;
@@ -810,7 +873,7 @@ this.loadFile = function (file, parentParam)
                 var loader = new THREE.BabylonLoader();
                 var scene = loader.parse( json );
 
-                editor.setScene( scene );
+                animationViewer.SetScene( scene );
 
             }, false );
             reader.readAsText( file );
@@ -834,7 +897,7 @@ this.loadFile = function (file, parentParam)
                     var material = new THREE.MeshPhongMaterial();
                     var mesh = new THREE.Mesh( geometry, material );
                     mesh.name = filename;
-                    editor.addObject( mesh );
+                    animationViewer.AddObject( mesh );
                 } );
             }, false );
             reader.readAsBinaryString( file );
@@ -853,7 +916,7 @@ this.loadFile = function (file, parentParam)
                 loader.parse(xml, function (collada)
                 {
                     collada.scene.name = filename;
-                    editor.addObject( collada.scene, collada.skins);
+                    animationViewer.AddObject( collada.scene, collada.skins);
                 });
             }, false);
             reader.readAsText(file);
@@ -913,7 +976,7 @@ this.loadFile = function (file, parentParam)
                 var object = new THREE.OBJLoader().parse( contents );
                 object.name = filename;
 
-                editor.addObject( object );
+                animationViewer.AddObject( object );
 
             }, false );
             reader.readAsText( file );
@@ -938,7 +1001,7 @@ this.loadFile = function (file, parentParam)
                 var mesh = new THREE.Mesh( geometry, material );
                 mesh.name = filename;
 
-                editor.addObject( mesh );
+                animationViewer.AddObject( mesh );
 
             }, false );
             reader.readAsText( file );
@@ -961,7 +1024,7 @@ this.loadFile = function (file, parentParam)
                 var mesh = new THREE.Mesh( geometry, material );
                 mesh.name = filename;
 
-                editor.addObject( mesh, parentParam);
+                animationViewer.AddObject( mesh, parentParam);
 
             }, false );
 
@@ -990,7 +1053,7 @@ this.loadFile = function (file, parentParam)
 
          var mesh = new THREE.Mesh( geometry, material );
 
-         editor.addObject( mesh );
+         animationViewer.AddObject( mesh );
 
          }, false );
          reader.readAsBinaryString( file );
@@ -1014,7 +1077,7 @@ this.loadFile = function (file, parentParam)
                 var mesh = new THREE.Mesh( geometry, material );
                 mesh.name = filename;
 
-                editor.addObject( mesh, parentParam);
+                animationViewer.AddObject( mesh, parentParam);
 
             }, false );
             reader.readAsText( file );
@@ -1030,7 +1093,7 @@ this.loadFile = function (file, parentParam)
 
                 var result = new THREE.VRMLLoader().parse( contents );
 
-                editor.setScene( result );
+                animationViewer.SetScene( result );
 
             }, false );
             reader.readAsText( file );
@@ -1084,7 +1147,7 @@ var handleJSON = function (data, file, filename, parentParam)
         var mesh = new THREE.Mesh( geometry, material );
         mesh.name = filename;
 
-        editor.addObject( mesh, parentParam );
+        animationViewer.AddObject( mesh, parentParam );
 
     } else if ( data.metadata.type.toLowerCase() === 'object' ) {
 
@@ -1093,11 +1156,11 @@ var handleJSON = function (data, file, filename, parentParam)
 
         if ( result instanceof THREE.Scene ) {
 
-            editor.setScene( result );
+            animationViewer.SetScene( result );
 
         } else {
 
-            editor.addObject( result, parentParam );
+            animationViewer.AddObject( result, parentParam );
 
         }
 
@@ -1108,7 +1171,7 @@ var handleJSON = function (data, file, filename, parentParam)
         var loader = new THREE.SceneLoader();
         loader.parse( data, function ( result ) {
 
-            editor.setScene( result.scene );
+            animationViewer.SetScene( result.scene );
 
         }, '' );
 
